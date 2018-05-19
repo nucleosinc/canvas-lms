@@ -2,8 +2,10 @@
 # To update this file please edit the relevant template and run the generation
 # task `build/dockerfile_writer.rb`
 
+FROM instructure/canvas-lms:stable AS original-canvas
+
 # See doc/docker/README.md or https://github.com/instructure/canvas-lms/tree/master/doc/docker
-FROM instructure/ruby-passenger:2.4
+FROM nucleosinc/canvas-i386-ruby-passenger:latest
 
 ENV APP_HOME /usr/src/app/
 ENV RAILS_ENV "production"
@@ -95,4 +97,7 @@ RUN mkdir -p .yardoc \
 
 USER docker
 # TODO: switch to canvas:compile_assets_dev once we stop using this Dockerfile in production/e2e
-RUN COMPILE_ASSETS_NPM_INSTALL=0 bundle exec rake canvas:compile_assets
+
+RUN rm -r ${APP_HOME}/public
+COPY --from=original-canvas $APP_HOME/public $APP_HOME/public
+#RUN COMPILE_ASSETS_NPM_INSTALL=0 bundle exec rake canvas:compile_assets
